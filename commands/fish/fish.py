@@ -23,11 +23,11 @@ def fish(context: Context):
     try:
         connection = sqlite3.connect("db.sqlite")
         cursor = connection.cursor()
-        cursor.execute('CREATE TABLE IF NOT EXISTS fishing_data (userID INTEGER PRIMARY KEY, points DECIMAL)')
-        cursor.execute("INSERT INTO fishing_data (userID, points) VALUES (?, ?) "
+        cursor.execute('CREATE TABLE IF NOT EXISTS fishing_data (userID INTEGER PRIMARY KEY, username TEXT, points DECIMAL)')
+        cursor.execute("INSERT INTO fishing_data (userID, username, points) VALUES (?, ?, ?) "
                        "ON CONFLICT (userID) "
                        "DO UPDATE SET points = fishing_data.points + EXCLUDED.points",
-                       (context.author.id, worth))
+                       (context.author.id, context.author.name, worth))
 
         connection.commit()
     except sqlite3.Error as e:

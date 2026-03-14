@@ -1,5 +1,2 @@
 .env
 .idea/
-
-# Ignore changes to the db
-db.sqlite

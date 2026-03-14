@@ -26,6 +26,10 @@ async def fish(ctx: Context):
 async def points(ctx: Context):
     await ctx.reply(get_points(ctx))
 
+@bot.command(name="send")
+async def send(ctx: Context):
+    await ctx.send(ctx.message.content.split(f"{bot.command_prefix}send ")[1])
+
 @bot.command(name="restart")
 @commands.is_owner()
 async def restart(ctx: Context):
