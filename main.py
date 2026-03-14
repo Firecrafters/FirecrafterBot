@@ -14,9 +14,34 @@ load_dotenv()
 
 bot = commands.Bot(command_prefix="_", intents=discord.Intents.all(), help_command=None)
 
+async def send_online_msg(target_channel_id):
+    channel = bot.get_channel(target_channel_id)
+
+    if channel and isinstance(channel, discord.TextChannel):
+        await channel.send(f"{emotes.ONLINE} Online")
+    else:
+        print(f"Error: Channel {target_channel_id} not found")
+
 @bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user}")
+    await bot.wait_until_ready()
+
+    print(f"Logged in as {bot.user}\n")
+
+    channel_1_specified = False
+    channel_2_specified = False
+
+    if os.getenv("ONLINE_CHANNEL_1") != "off":
+        channel_1_specified = True
+        target_channel_id_1 = int(os.getenv("ONLINE_CHANNEL_1"))
+    if os.getenv("ONLINE_CHANNEL_2") != "off":
+        channel_2_specified = True
+        target_channel_id_2 = int(os.getenv("ONLINE_CHANNEL_2"))
+
+    if channel_1_specified:
+        await send_online_msg(target_channel_id_1)
+    if channel_2_specified:
+        await send_online_msg(target_channel_id_2)
 
 @bot.command(name="fish")
 async def fish(ctx: Context):
