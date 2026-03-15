@@ -1,10 +1,11 @@
 import discord
-import pandas as pd
 from discord.ext.commands import Context
 import sqlite3
-import pandas
 import commands.fish.catches as catches
 import random
+
+import config
+
 
 def get_random_rarity():
     random_value = random.random()
@@ -46,7 +47,19 @@ def fish(context: Context):
 
     print(f"{context.author.name} caught a {item["name"]} of rarity {rarity["name"]}")
     print(f"{context.author.name} gained {int(worth)} points ({item["value"]} * {rarity["multiplier"]})\n")
-    return f"You caught a{suffix} {rarity["name"]} {item["name"]}\n+{int(worth)} points"
+
+    embed = discord.Embed(
+        title="Fishing",
+        color=config.EMBED_COLOR
+    )
+
+    lines = [
+        f"You caught a{suffix} **_{rarity["name"]}_ {item["name"]}**",
+        f"+**{worth}** points"
+    ]
+
+    embed.description = "\n".join(lines)
+    return embed
 
 def get_points(context: Context):
     points = 0
@@ -78,7 +91,7 @@ def get_leaderboard(limit: int) -> list[tuple[str, int]]:
 def build_leaderboard_embed(rows: list[tuple[str, int]]) -> discord.Embed:
     embed = discord.Embed(
         title="Leaderboard",
-        color=0xFF00FF
+        color=config.EMBED_COLOR
     )
 
     lines = []
