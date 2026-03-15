@@ -18,20 +18,25 @@ def get_random_rarity():
 
     return catches.RARITIES[0]
 
-def fish(context: Context):
+
+def fish(context: Context) -> discord.Embed:
     rarity = get_random_rarity()
     item = random.choice(catches.CATCHES)
 
     worth = item["value"] * rarity["multiplier"]
+    connection = sqlite3.connect("db.sqlite")
+    cursor = connection.cursor()
 
     try:
-        connection = sqlite3.connect("db.sqlite")
-        cursor = connection.cursor()
-        cursor.execute('CREATE TABLE IF NOT EXISTS fishing_data (userID INTEGER PRIMARY KEY, username TEXT, points DECIMAL)')
-        cursor.execute("INSERT INTO fishing_data (userID, username, points) VALUES (?, ?, ?) "
-                       "ON CONFLICT (userID) "
-                       "DO UPDATE SET points = fishing_data.points + EXCLUDED.points",
-                       (context.author.id, context.author.name, worth))
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS fishing_data (userID INTEGER PRIMARY KEY, username TEXT, points DECIMAL)"
+        )
+        cursor.execute(
+            "INSERT INTO fishing_data (userID, username, points) VALUES (?, ?, ?) "
+            "ON CONFLICT (userID) "
+            "DO UPDATE SET points = fishing_data.points + EXCLUDED.points",
+            (context.author.id, context.author.name, worth),
+        )
 
         connection.commit()
     except sqlite3.Error as e:
@@ -48,35 +53,43 @@ def fish(context: Context):
     print(f"{context.author.name} caught a {item["name"]} of rarity {rarity["name"]}")
     print(f"{context.author.name} gained {int(worth)} points ({item["value"]} * {rarity["multiplier"]})\n")
 
-    embed = discord.Embed(
-        title="Fishing",
-        color=config.EMBED_COLOR
-    )
+    embed = discord.Embed(title="Fishing", color=config.EMBED_COLOR)
 
     lines = [
         f"You caught a{suffix} **_{rarity["name"]}_ {item["name"]}**",
-        f"+**{worth}** points"
+        f"+**{worth}** points",
     ]
 
     embed.description = "\n".join(lines)
     return embed
 
-def get_points(context: Context):
+
+def get_points(context: Context) -> discord.Embed:
     points = 0
+    connection = sqlite3.connect("db.sqlite")
+    cursor = connection.cursor()
+
     try:
-        connection = sqlite3.connect("db.sqlite")
-        cursor = connection.cursor()
-        cursor.execute("SELECT points FROM fishing_data WHERE userID = ?", (context.author.id,))
+        cursor.execute(
+            "SELECT points FROM fishing_data WHERE userID = ?", (context.author.id,)
+        )
         row = cursor.fetchone()
         if row:
             points = row[0]
-            
+
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
     finally:
         if connection:
             connection.close()
-    return f"You have {points} points"
+
+    embed = discord.Embed(
+        title="Points",
+        color=config.EMBED_COLOR,
+        description=f"{points}"
+    )
+    return embed
+
 
 def get_leaderboard(limit: int) -> list[tuple[str, int]]:
     connection = sqlite3.connect("db.sqlite")
@@ -88,11 +101,9 @@ def get_leaderboard(limit: int) -> list[tuple[str, int]]:
 
     return rows
 
+
 def build_leaderboard_embed(rows: list[tuple[str, int]]) -> discord.Embed:
-    embed = discord.Embed(
-        title="Leaderboard",
-        color=config.EMBED_COLOR
-    )
+    embed = discord.Embed(title="Leaderboard", color=config.EMBED_COLOR)
 
     lines = []
     for rank, (userID, points) in enumerate(rows, start=1):
@@ -100,5 +111,3 @@ def build_leaderboard_embed(rows: list[tuple[str, int]]) -> discord.Embed:
 
     embed.description = "\n".join(lines) if lines else "N/A"
     return embed
-
-

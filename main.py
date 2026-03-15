@@ -30,16 +30,18 @@ async def on_ready():
 
     print(f"Logged in as {bot.user}\n")
 
+    target_channel_id_1 = 0
+    target_channel_id_2 = 0
     channel_1_specified = False
     channel_2_specified = False
 
     if os.getenv("ONLINE_CHANNEL_1") != "off":
         channel_1_specified = True
-        target_channel_id_1 = int(os.getenv("ONLINE_CHANNEL_1"))
+        target_channel_id_1 = int(str(os.getenv("ONLINE_CHANNEL_1")))
     if os.getenv("ONLINE_CHANNEL_2") != "off":
         channel_2_specified = True
-        target_channel_id_2 = int(os.getenv("ONLINE_CHANNEL_2"))
-
+        target_channel_id_2 = int(str(os.getenv("ONLINE_CHANNEL_2")))
+  
     if channel_1_specified:
         await send_online_msg(target_channel_id_1)
     if channel_2_specified:
@@ -59,7 +61,8 @@ async def on_message(message: discord.Message):
             if message.content.startswith(f"{bot.command_prefix}{commandName}"):
                 my_command = bot.get_command(f"{commandName}")
                 ctx = await bot.get_context(message)
-                await my_command.invoke(ctx)
+                if my_command is not None:
+                    await my_command.invoke(ctx)
 
 
     await bot.process_commands(message)
@@ -75,7 +78,7 @@ async def fish(ctx: Context):
 
 @bot.command(name="points")
 async def points(ctx: Context):
-    await ctx.reply(get_points(ctx))
+    await ctx.reply(embed=get_points(ctx))
 
 @bot.command(name="leaderboard")
 async def leaderboard(ctx: Context):
@@ -106,4 +109,4 @@ async def stop(ctx: Context):
     print("Stopping the bot...")
     os._exit(0)
 
-bot.run(os.getenv("TOKEN"))
+bot.run(str(os.getenv("TOKEN")))
