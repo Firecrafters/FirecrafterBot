@@ -1,5 +1,8 @@
+import discord
+import pandas as pd
 from discord.ext.commands import Context
 import sqlite3
+import pandas
 import commands.fish.catches as catches
 import random
 
@@ -61,3 +64,28 @@ def get_points(context: Context):
         if connection:
             connection.close()
     return f"You have {points} points"
+
+def get_leaderboard(limit: int) -> list[tuple[str, int]]:
+    connection = sqlite3.connect("db.sqlite")
+    cursor = connection.cursor()
+    query = "SELECT userID, points FROM fishing_data ORDER BY points DESC LIMIT ?"
+    cursor.execute(query, (limit,))
+    rows = cursor.fetchall()
+    connection.close()
+
+    return rows
+
+def build_leaderboard_embed(rows: list[tuple[str, int]]) -> discord.Embed:
+    embed = discord.Embed(
+        title="Leaderboard",
+        color=0xFF00FF
+    )
+
+    lines = []
+    for rank, (userID, points) in enumerate(rows, start=1):
+        lines.append(f"{rank}. **<@{userID}>** — {points:,} points")
+
+    embed.description = "\n".join(lines) if lines else "N/A"
+    return embed
+
+

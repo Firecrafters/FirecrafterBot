@@ -7,7 +7,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from dotenv import load_dotenv
 from commands.fish.fish import fish as fish_func
-from commands.fish.fish import get_points
+from commands.fish.fish import get_leaderboard, build_leaderboard_embed, get_points
 import emotes
 
 load_dotenv()
@@ -74,6 +74,13 @@ async def fish(ctx: Context):
 @bot.command(name="points")
 async def points(ctx: Context):
     await ctx.reply(get_points(ctx))
+
+@bot.command(name="leaderboard")
+async def leaderboard(ctx: Context):
+    limit = 10 # How many people to show on the leaderboard
+    rows = get_leaderboard(limit)
+    embed = build_leaderboard_embed(rows)
+    await ctx.reply(embed=embed)
 
 @bot.command(name="send")
 async def send(ctx: Context):
