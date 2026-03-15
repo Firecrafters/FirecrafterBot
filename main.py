@@ -43,6 +43,30 @@ async def on_ready():
     if channel_2_specified:
         await send_online_msg(target_channel_id_2)
 
+@bot.event
+async def on_message(message: discord.Message):
+    if message.author == bot.user:
+        return
+
+    command_list = []
+    for command in bot.commands:
+        command_list.append(command.name)
+
+    if message.author.bot:
+        for commandName in command_list:
+            if message.content.startswith(f"{bot.command_prefix}{commandName}"):
+                my_command = bot.get_command(f"{commandName}")
+                ctx = await bot.get_context(message)
+                await my_command.invoke(ctx)
+
+
+    await bot.process_commands(message)
+
+@bot.event
+async def on_command_error(ctx: Context, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.reply(emotes.NO)
+
 @bot.command(name="fish")
 async def fish(ctx: Context):
     await ctx.reply(fish_func(ctx))
